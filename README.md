@@ -24,5 +24,5 @@ it; PRs welcome!
 
 ### Disclaimer
 
-I realize that this code could be used to make someone's life a pain. Please be
+This code is just a demonstration, please be
 responsible and USE AT YOUR OWN RISK.
