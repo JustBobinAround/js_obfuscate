@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Obfuscate</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        p{
+            margin-left: 10%;
+            margin-right: 10%;
+            font-size: 16px;
+        }
+        textarea {
+            width: 300px;
+            height: 100px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .process-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .copy-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        .download-btn {
+            background-color: #FF5722;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>JS Obfuscate</h1>
+    <div><p>The processed script text will not appear to be altered even after
+generating. This is because the script is encoded in zero-width UTF-8 white-space
+characters. Since this is the case, it is recommended to copy the generated script
+with the "Copy to Clipboard" button as it will lower the chances of miss-copying.
+The Script can also be tested via the "Test Script" button and will run the newly
+generated script in an iframe below this tool, so run at your own risk lol.</p></div>
+    <textarea id="inputText" placeholder="Enter your script here..."></textarea>
+    <textarea id="outputText" placeholder="Processed script will appear here..." readonly></textarea><br>
+    <button class="process-btn" onclick="processText(true)">Process Script</button>
+    <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+    <button class="copy-btn" onclick="testScript()">Test Script</button></br>
+    <button class="download-btn" onclick="downloadText()">Download Script as HTML File</button>
+</div>
+
+<script>
+    function charToBinary(char) {
+        if (char.length !== 1) {
+            throw new Error("Input must be a single character.");
+        }
+        const asciiValue = char.charCodeAt(0);
+        const binaryValue = asciiValue.toString(2);
+        const paddedBinaryValue = binaryValue.padStart(8, '0');
+        
+        return paddedBinaryValue;
+    }
+
+    function stringToBinary(string) {
+        return Array.from(string).map(charToBinary);
+    }
+
+    function processText(shouldMsg) {
+        const textArea = document.getElementById('inputText');
+        const inputText = textArea.value;
+        const binaryList = stringToBinary(inputText);
+        
+        let sum = "";
+        for (let binary of binaryList) {
+            sum += binary.replace(/0/g, '\uFEFF').replace(/1/g, '\u200B').split("").reverse().join("");
+        }
+        
+        const processedText = "<script>\n\tvar d=(a=\'"+sum+"\',b=0,c=(a,b,e)=>e<8?(a[b]!=\'\\uFEFF\'?2**e:0)+c(a,b+1,e+1):0)=>a[b]?String.fromCharCode(c(a,b,0))+d(a,b+8):\'\';eval(d())\n<\/script>";
+
+        
+        let outArea = document.getElementById('outputText');
+        outArea.value = processedText;
+        if(shouldMsg) {
+            alert('Created obfuscated script...');
+        }
+    }
+
+
+    function copyToClipboard() {
+        const textArea = document.getElementById('outputText');
+        textArea.select();
+        document.execCommand('copy');
+        alert('Processed text copied to clipboard');
+    }
+
+    function downloadText() {
+        const text = document.getElementById('outputText').value;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const anchor = document.createElement('a');
+        anchor.download = 'index.html';
+        anchor.href = window.URL.createObjectURL(blob);
+        anchor.click();
+        window.URL.revokeObjectURL(anchor.href);
+    }
+
+    function createIframe(scriptContent) {
+        var iframe = document.getElementById('testFrame');
+        if(!(iframe==null)) {
+            iframe.remove();
+        }
+        iframe = document.createElement('iframe');
+        iframe.id = 'testFrame';
+        iframe.style.textAlign = 'center';
+        iframe.style.background = 'white';
+        iframe.style.padding = '20px';
+        iframe.style.borderRadius = '10px';
+        iframe.style.boxShadow = '0 0 10px rgba(0,0,0,0.1)';
+        iframe.srcdoc = scriptContent;
+        document.body.appendChild(iframe);
+        return iframe;
+    }
+
+    function clearIframeContent(iframe) {
+        var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+        iframeDocument.open();
+        iframeDocument.close();
+    }
+
+    function insertAndRunScriptInIframe(iframe, scriptContent) {
+        var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+        var script = iframeDocument.createElement('script');
+        script.type = 'text/javascript';
+        script.textContent = scriptContent;
+        iframeDocument.head.appendChild(script);
+    }
+
+    function testScript() {
+        processText(false);
+        let text = document.getElementById('outputText').value
+        var iframe = createIframe(text);
+    }
+</script>
+
+</body>
+</html>
+
